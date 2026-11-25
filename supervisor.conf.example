@@ -1,5 +1,5 @@
-; 1Panel「进程守护」里按下面字段填写即可，不需要手动改这个文件。
-; 运行用户统一 root；muse-agent 的运行目录是 /Muse/agent，其余是 /Muse。
+; Di 1Panel "Supervisor", isi saja sesuai kolom di bawah ini, file ini tidak perlu diubah manual.
+; Pengguna yang menjalankan seragam root; direktori kerja muse-agent adalah /Muse/agent, sisanya /Muse.
 
 [program:muse2api]
 directory=/Muse

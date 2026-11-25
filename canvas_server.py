@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""无限画布静态站点服务器（零第三方依赖，Python 3.8+）。
+"""Server situs statis Kanvas Tak Terbatas (tanpa dependensi pihak ketiga, Python 3.8+).
 
-- 托管 canvas/dist，所有前端路由回退到 index.html（React Router）。
-- 动态生成 /config.js：把 .env 里的 Muse 地址/Key 和
-  agent/.infinite-canvas/canvas-agent.json 里的 Agent 地址/Token 注入浏览器配置。
-  Agent 的地址和 Token 只认这个 JSON 文件，不读环境变量。
+- Meng-host canvas/dist, semua rute frontend dikembalikan ke index.html (React Router).
+- Membuat /config.js secara dinamis: menyuntik alamat/Key Muse dari .env dan
+  alamat/Token Agent dari agent/.infinite-canvas/canvas-agent.json ke konfigurasi browser.
+  Alamat dan Token Agent hanya dibaca dari file JSON ini, tidak dari variabel lingkungan.
 """
 from __future__ import annotations
 
@@ -37,7 +37,7 @@ mimetypes.add_type("application/manifest+json", ".webmanifest")
 
 
 def _agent_runtime() -> dict[str, str]:
-    """Agent 地址/Token 的唯一来源：agent/.infinite-canvas/canvas-agent.json。"""
+    """Satu-satunya sumber alamat/Token Agent: agent/.infinite-canvas/canvas-agent.json."""
     try:
         data = json.loads(AGENT_CONFIG.read_text(encoding="utf-8"))
     except (OSError, ValueError):
@@ -116,10 +116,10 @@ class Handler(BaseHTTPRequestHandler):
             if candidate.is_dir():
                 candidate = candidate / "index.html"
             if not candidate.is_file():
-                # SPA 回退：/canvas/xxx、/image 等前端路由都交给 index.html
+                # Fallback SPA: rute frontend seperti /canvas/xxx dan /image diserahkan ke index.html
                 candidate = ROOT / "index.html"
             if not candidate.is_file():
-                self._send(503, "前端未构建：缺少 canvas/dist/index.html\n".encode("utf-8"),
+                self._send(503, "Frontend belum di-build: canvas/dist/index.html tidak ada\n".encode("utf-8"),
                            "text/plain; charset=utf-8", "no-store", head_only)
                 return
 
@@ -135,18 +135,18 @@ class Handler(BaseHTTPRequestHandler):
         except (BrokenPipeError, ConnectionResetError):
             pass
         except OSError as exc:
-            self._send(500, f"读取文件失败：{exc}\n".encode("utf-8"),
+            self._send(500, f"Gagal membaca file: {exc}\n".encode("utf-8"),
                        "text/plain; charset=utf-8", "no-store", head_only)
 
 
 def main() -> None:
     if not (ROOT / "index.html").is_file():
-        sys.stderr.write(f"[warn] {ROOT / 'index.html'} 不存在，请先构建前端或设置 CANVAS_ROOT\n")
+        sys.stderr.write(f"[warn] {ROOT / 'index.html'} tidak ada, build frontend dulu atau atur CANVAS_ROOT\n")
     server = ThreadingHTTPServer((HOST, PORT), Handler)
     server.daemon_threads = True
 
     def stop(_signum, _frame) -> None:
-        # shutdown() 会等待 serve_forever 退出，必须放到别的线程里调用。
+        # shutdown() menunggu serve_forever keluar, jadi harus dipanggil dari thread lain.
         threading.Thread(target=server.shutdown, daemon=True).start()
 
     signal.signal(signal.SIGTERM, stop)

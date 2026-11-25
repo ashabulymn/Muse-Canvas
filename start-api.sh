@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 启动 muse2api（供 1Panel「进程守护」调用，也可手动执行）
+# Menjalankan muse2api (dipanggil 1Panel "Supervisor", bisa juga dijalankan manual)
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -10,7 +10,7 @@ if [ -f "$ROOT/.env" ]; then
   set +a
 fi
 
-# .env 只维护一份密钥/对外地址，这里同步给 muse2api 认识的环境变量
+# .env hanya mengelola satu salinan key/alamat publik, di sini disinkronkan ke variabel lingkungan yang dikenali muse2api
 export MUSE2API_KEY="${MUSE_API_KEY:-}"
 export MUSE2API_PUBLIC_BASE="${MUSE_API_BASE:-}"
 export MUSE2API_HOST="${MUSE2API_HOST:-0.0.0.0}"

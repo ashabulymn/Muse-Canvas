@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 启动无限画布静态站点（供 1Panel「进程守护」调用，也可手动执行）
+# Menjalankan situs statis Kanvas Tak Terbatas (dipanggil 1Panel "Supervisor", bisa juga dijalankan manual)
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 

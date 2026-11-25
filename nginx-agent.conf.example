@@ -1,5 +1,5 @@
-# 把下面内容放进 agent.example.com 这个网站的反向代理配置里
-# 1Panel：网站 -> 网站 -> agent.example.com -> 反向代理 -> 编辑
+# Tempel isi di bawah ini ke konfigurasi reverse proxy situs agent.example.com
+# 1Panel: Website -> Website -> agent.example.com -> Reverse Proxy -> Edit
 
 location / {
     proxy_pass http://127.0.0.1:17371;
@@ -10,12 +10,12 @@ location / {
     proxy_set_header X-Forwarded-Proto $scheme;
     proxy_set_header Connection "";
 
-    # Agent 的 /events 是 SSE，必须关闭缓冲
+    # /events Agent adalah SSE, buffering harus dimatikan
     proxy_buffering off;
     proxy_cache off;
     gzip off;
 
-    # 一个 Codex 回合可能持续很久
+    # Satu giliran Codex bisa berlangsung lama
     proxy_connect_timeout 60s;
     proxy_send_timeout 3600s;
     proxy_read_timeout 3600s;

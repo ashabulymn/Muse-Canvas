@@ -1,0 +1,8 @@
+muse2api/
+source/
+agent/
+.git/
+.venv/
+logs/
+*.log
+.env

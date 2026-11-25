@@ -1,47 +1,47 @@
 # Muse—Canvas
 
-> 把 **Muse(muse.ai)** 的生图 / 生视频 / 对话能力接进 **无限画布**，再用 **DeepSeek + Codex Agent** 让 AI 直接操作画布。
+> Menghubungkan kemampuan **Muse (muse.ai)** untuk membuat gambar / membuat video / percakapan ke **Kanvas Tak Terbatas**, lalu memakai **DeepSeek + Codex Agent** agar AI langsung mengoperasikan kanvas.
 >
 > A self-hosted AI canvas that connects **Muse(muse.ai)** image / video / chat models to **Infinite Canvas**, with a server-side **DeepSeek + Codex Agent** that can operate the canvas.
 
-[中文](#中文) · [English](#english) · [GitHub](https://github.com/huwanbin/Muse-Canvas)
+[Bahasa Indonesia](#bahasa-indonesia) · [English](#english) · [GitHub](https://github.com/ashabulymn/Muse-Canvas)
 
 ---
 
-## 中文
+## Bahasa Indonesia
 
-### 这是什么
+### Apa ini
 
-这个仓库把两个优秀的开源项目组合成一套可部署的完整系统：
+Repo ini menggabungkan dua proyek open-source yang sangat bagus menjadi satu sistem lengkap yang bisa di-deploy:
 
-1. **[muse2api](https://github.com/czg86389-hub/muse2api)**：把 Muse 的网页能力逆向封装成 OpenAI 兼容 API，支持文生图、图生图、文生视频、图生视频和对话。
-2. **[infinite-canvas](https://github.com/basketikun/infinite-canvas)**：面向 AI 创作的无限画布工作台，浏览器端直接调用 OpenAI 兼容接口。
-3. **本仓库新增的粘合层**：
-   - 让无限画布的默认渠道由服务器 `.env` 固定，网页端不能改地址、Key 和模型；
-   - 把 Agent 的地址、Token 固定到 `canvas-agent.json`，网页端只读并自动连接；
-   - 提供 `canvas_server.py`，用纯 Python 托管构建好的前端，不依赖 Node；
-   - 提供 `install.sh`、1Panel 进程守护配置、Nginx SSE 反代示例和中英教程；
-   - 对 muse2api 做了兼容补丁：支持画布传来的 `multipart/form-data` 视频参数、`n` 张图片、`first_frame` / `last_frame` / `image[]` 参考图等。
+1. **[muse2api](https://github.com/czg86389-hub/muse2api)**: membungkus kemampuan web Muse menjadi API yang kompatibel dengan OpenAI, mendukung text-to-image, image-to-image, text-to-video, image-to-video, dan percakapan.
+2. **[infinite-canvas](https://github.com/basketikun/infinite-canvas)**: meja kerja kanvas tak terbatas untuk kreasi AI, yang memanggil interface yang kompatibel dengan OpenAI langsung dari browser.
+3. **Lapisan perekat baru di repo ini**:
+   - Membuat channel default kanvas tak terbatas dikunci oleh `.env` server, halaman web tidak bisa mengubah alamat, Key, dan model;
+   - Mengunci alamat dan Token Agent ke `canvas-agent.json`, halaman web hanya-baca dan terhubung otomatis;
+   - Menyediakan `canvas_server.py`, yang meng-host frontend hasil build dengan Python murni, tanpa bergantung pada Node;
+   - Menyediakan `install.sh`, konfigurasi Supervisor 1Panel, contoh reverse proxy Nginx SSE, dan tutorial dwibahasa;
+   - Memberi patch kompatibilitas pada muse2api: mendukung parameter video `multipart/form-data` dari kanvas, `n` gambar, `first_frame` / `last_frame` / `image[]` gambar referensi, dan lain-lain.
 
-### 功能
+### Fitur
 
-- 无限画布：文本、图片、视频、音频节点，参考图，画布项目管理。
-- Muse 渠道：`muse-image` 生图、`muse-video` 生视频、`muse-spark` 对话/代码。
-- 服务端 Agent：Codex App Server 使用 DeepSeek Responses API，通过 MCP 工具直接操作画布。
-- 渠道锁定：`MUSE_API_BASE`、`MUSE_API_KEY`、模型列表只在服务器 `.env` 中维护。
-- Agent 锁定：浏览器地址和 Token 只从 `agent/.infinite-canvas/canvas-agent.json` 读取。
-- 一条 `install.sh` 完成 Python 环境、Node Agent、Codex 配置、密钥和进程守护参数生成。
-- 中英双语文档 + 可复现的 1Panel / Nginx 部署步骤。
+- Kanvas tak terbatas: node teks, gambar, video, audio, gambar referensi, manajemen proyek kanvas.
+- Channel Muse: `muse-image` membuat gambar, `muse-video` membuat video, `muse-spark` percakapan/kode.
+- Agent server: Codex App Server memakai DeepSeek Responses API, langsung mengoperasikan kanvas lewat tool MCP.
+- Penguncian channel: `MUSE_API_BASE`, `MUSE_API_KEY`, daftar model hanya dikelola di `.env` server.
+- Penguncian Agent: alamat dan Token browser hanya dibaca dari `agent/.infinite-canvas/canvas-agent.json`.
+- Satu `install.sh` menyelesaikan lingkungan Python, Node Agent, konfigurasi Codex, key, dan pembuatan parameter Supervisor.
+- Dokumentasi dwibahasa + langkah deploy 1Panel / Nginx yang bisa direproduksi.
 
-### 架构
+### Arsitektur
 
 ```text
 ┌──────────────────────────────┐
-│ 浏览器                        │
+│ Browser                      │
 │ https://canvas.example.com   │
-│  ├─ 无限画布（静态前端）       │
-│  ├─ /config.js 由后端动态注入  │
-│  └─ Agent 面板（只读地址/Token）│
+│  ├─ Kanvas Tak Terbatas (frontend statis) │
+│  ├─ /config.js disuntik oleh backend      │
+│  └─ Panel Agent (alamat/Token hanya-baca) │
 └──────────────┬───────────────┘
                │ HTTPS
      ┌─────────┴──────────┐
@@ -49,7 +49,7 @@
 ┌────▼─────────┐   ┌──────▼─────────────┐
 │ canvas_server│   │ agent.example.com  │
 │ :521         │   │ Nginx → 127.0.0.1  │
-│ 静态文件      │   │ :17371             │
+│ File statis  │   │ :17371             │
 └────┬─────────┘   └──────┬─────────────┘
      │                    │
      │ /config.js         │ SSE + HTTP
@@ -61,49 +61,51 @@
 └────┬─────────┘   └──────┬─────────────┘
      │                    │
 ┌────▼─────────┐   ┌──────▼─────────────┐
-│ Muse 账号池   │   │ api.deepseek.com   │
-│ Chromium CDP │   │ MCP → 画布工具      │
+│ Kolam akun Muse │ │ api.deepseek.com   │
+│ Chromium CDP │   │ MCP → tool kanvas  │
 └──────────────┘   └────────────────────┘
 ```
 
-### 目录结构
+### Struktur direktori
 
 ```text
 Muse-Canvas/
-├── README.md                     # 本文件（中英对照）
+├── README.md                     # File ini (Bahasa Indonesia + English)
 ├── LICENSE                       # MIT
-├── NOTICE                        # 上游项目与致谢
-├── .env.example                  # 服务器环境变量模板
-├── install.sh                    # 一键安装（Debian / Ubuntu）
-├── start-api.sh                  # 启动 muse2api
-├── start-canvas.sh               # 启动画布静态服务
-├── canvas_server.py              # 纯 Python 静态服务器 + /config.js 注入
-├── supervisor.conf.example       # 1Panel 进程守护参考
-├── nginx-agent.conf.example      # Agent 的 Nginx/SSE 反代参考
-├── muse2api/                     # 已打补丁的 Muse API 源码
+├── NOTICE                        # Atribusi proyek hulu
+├── .env.example                  # Template variabel lingkungan server
+├── Dockerfile                    # Deploy Dokploy canvas-only (fork ini)
+├── DOKPLOY.md                    # Panduan deploy Dokploy (fork ini)
+├── install.sh                    # Instalasi satu-klik (Debian / Ubuntu)
+├── start-api.sh                  # Menjalankan muse2api
+├── start-canvas.sh               # Menjalankan layanan statis kanvas
+├── canvas_server.py              # Server statis Python murni + injeksi /config.js
+├── supervisor.conf.example       # Referensi Supervisor 1Panel
+├── nginx-agent.conf.example      # Referensi Nginx/SSE untuk Agent
+├── muse2api/                     # Kode sumber Muse API yang sudah dipatch (versi lama, tidak dipakai di Dokploy — lihat bagian Deploy di Dokploy)
 ├── canvas/
-│   └── dist/                     # 构建好的无限画布前端
+│   └── dist/                     # Frontend Kanvas Tak Terbatas hasil build
 ├── agent/
 │   ├── package.json              # @basketikun/canvas-agent
-│   ├── start-agent.sh            # 服务端 Agent 启动脚本
-│   └── codex/                    # Codex + DeepSeek 配置与模型目录
+│   ├── start-agent.sh            # Skrip peluncur Agent server
+│   └── codex/                    # Konfigurasi Codex + DeepSeek dan katalog model
 └── source/
-    └── infinite-canvas/          # 无限画布上游源码（便于二次开发）
+    └── infinite-canvas/          # Kode sumber Kanvas Tak Terbatas hulu (untuk pengembangan lanjutan)
 ```
 
-### 环境要求
+### Kebutuhan lingkungan
 
-- Linux：Debian 12+ / Ubuntu 22.04+（其他发行版需自行安装依赖）。
-- Python 3.10+。
-- Node.js 18+（推荐 20/22）。
-- Chromium 或 Google Chrome（muse2api 需要）。
-- 至少 2 核 4 GB；视频生成建议 4 核 8 GB。
-- 一个能登录 Muse 的账号（通过 Cookie 导入）。
-- 一个 DeepSeek API Key（Agent 使用，`sk-` 开头）。
+- Linux: Debian 12+ / Ubuntu 22.04+ (distro lain perlu menginstal dependensi sendiri).
+- Python 3.10+.
+- Node.js 18+ (disarankan 20/22).
+- Chromium atau Google Chrome (dibutuhkan muse2api).
+- Minimal 2 core 4 GB; pembuatan video disarankan 4 core 8 GB.
+- Satu akun yang bisa login ke Muse (lewat impor Cookie).
+- Satu DeepSeek API Key (untuk Agent, diawali `sk-`).
 
-### 快速开始
+### Mulai cepat
 
-#### 1. 上传并解压
+#### 1. Unggah dan ekstrak
 
 ```bash
 sudo mkdir -p /Muse
@@ -111,47 +113,47 @@ sudo tar -xzf Muse-Canvas.tar.gz -C /Muse --strip-components=1
 cd /Muse
 ```
 
-也可以把仓库直接 `git clone` 到 `/Muse`。
+Bisa juga langsung `git clone` repo ini ke `/Muse`.
 
-#### 2. 准备环境变量
+#### 2. Siapkan variabel lingkungan
 
 ```bash
 cp .env.example .env
 nano .env
 ```
 
-至少修改：
+Minimal diubah:
 
 ```ini
 MUSE_API_BASE=https://api.example.com
-MUSE_API_KEY=换成一个随机长字符串
-DEEPSEEK_API_KEY=sk-你的DeepSeekKey
+MUSE_API_KEY=ganti-dengan-string-acak-yang-panjang
+DEEPSEEK_API_KEY=sk-DeepSeekKey-Anda
 ```
 
-说明：
+Penjelasan:
 
-- `MUSE_API_BASE` 是**浏览器**访问 Muse API 的地址，末尾不要带 `/`，也不要带 `/v1`；
-- 如果画布用 HTTPS 打开，这里也必须是 HTTPS，否则浏览器会拦截混合内容；
-- `MUSE_API_KEY` 是 muse2api 的访问密钥，不是 Muse 账号密码；
-- `DEEPSEEK_API_KEY` 只给服务端 Agent 用，不会写进前端。
+- `MUSE_API_BASE` adalah alamat Muse API yang diakses **browser**, jangan diakhiri `/`, jangan tambahkan `/v1`;
+- Jika kanvas dibuka dengan HTTPS, alamat ini juga harus HTTPS, kalau tidak browser akan memblokir mixed content;
+- `MUSE_API_KEY` adalah kunci akses muse2api, bukan kata sandi akun Muse;
+- `DEEPSEEK_API_KEY` hanya dipakai Agent server, tidak ditulis ke frontend.
 
-#### 3. 一键安装
+#### 3. Instalasi satu-klik
 
 ```bash
 sudo -E bash install.sh
 ```
 
-安装脚本会：
+Skrip instalasi akan:
 
-1. 安装 Python、Chromium、Node、字体等依赖；
-2. 创建 `.venv` 并安装 muse2api 依赖；
-3. 保留已有 `.env`，没有则生成随机 `MUSE_API_KEY`；
-4. 校验并写入 `DEEPSEEK_API_KEY`；
-5. 在 `agent/` 安装 `@basketikun/canvas-agent@0.6.0`；
-6. 生成 `agent/.infinite-canvas/canvas-agent.json`（Token、公网地址、允许来源、工作区）；
-7. 打印 1Panel 三条进程守护参数、Agent Token 和管理台地址。
+1. Menginstal dependensi Python, Chromium, Node, font, dan lain-lain;
+2. Membuat `.venv` dan menginstal dependensi muse2api;
+3. Mempertahankan `.env` yang sudah ada, jika belum ada akan membuat `MUSE_API_KEY` acak;
+4. Memvalidasi dan menulis `DEEPSEEK_API_KEY`;
+5. Menginstal `@basketikun/canvas-agent@0.6.0` di `agent/`;
+6. Membuat `agent/.infinite-canvas/canvas-agent.json` (Token, alamat publik, asal yang diizinkan, workspace);
+7. Mencetak tiga parameter Supervisor 1Panel, Token Agent, dan alamat panel admin.
 
-如果域名不是 `agent.example.com` / `muse.example.com`，安装时覆盖：
+Jika domain bukan `agent.example.com` / `muse.example.com`, timpa saat instalasi:
 
 ```bash
 sudo -E env \
@@ -160,29 +162,29 @@ sudo -E env \
   bash install.sh
 ```
 
-#### 4. 1Panel 进程守护
+#### 4. Supervisor 1Panel
 
-在 1Panel 的「工具箱 → 进程守护」中安装 Supervisor，然后创建三条：
+Di 1Panel, pada "Toolbox → Supervisor", instal Supervisor, lalu buat tiga entri:
 
-| 名称 | 运行用户 | 运行目录 | 启动命令 |
+| Nama | Pengguna | Direktori kerja | Perintah |
 | --- | --- | --- | --- |
 | `muse2api` | root | `/Muse` | `/bin/bash /Muse/start-api.sh` |
 | `muse-canvas` | root | `/Muse` | `/bin/bash /Muse/start-canvas.sh` |
 | `muse-agent` | root | `/Muse/agent` | `/bin/bash /Muse/agent/start-agent.sh` |
 
-进程数都填 `1`，保存后启动。日志在 `/Muse/logs/`。
+Jumlah proses masing-masing diisi `1`, simpan lalu jalankan. Log ada di `/Muse/logs/`.
 
-#### 5. 反向代理与 HTTPS
+#### 5. Reverse proxy dan HTTPS
 
-建议三个域名：
+Disarankan tiga domain:
 
-| 域名 | 反代到 | 用途 |
+| Domain | Diteruskan ke | Kegunaan |
 | --- | --- | --- |
-| `canvas.example.com` | `127.0.0.1:521` | 无限画布 |
+| `canvas.example.com` | `127.0.0.1:521` | Kanvas Tak Terbatas |
 | `api.example.com` | `127.0.0.1:1314` | Muse API |
-| `agent.example.com` | `127.0.0.1:17371` | 服务端 Agent |
+| `agent.example.com` | `127.0.0.1:17371` | Agent server |
 
-API 的 Nginx 关键配置（生图/视频可能超过 60 秒）：
+Konfigurasi Nginx penting untuk API (membuat gambar/video bisa lebih dari 60 detik):
 
 ```nginx
 proxy_connect_timeout 60s;
@@ -192,7 +194,7 @@ proxy_buffering       off;
 client_max_body_size  200M;
 ```
 
-Agent 的 Nginx 关键配置（SSE 不能缓冲）：
+Konfigurasi Nginx penting untuk Agent (SSE tidak boleh di-buffer):
 
 ```nginx
 proxy_http_version 1.1;
@@ -205,47 +207,47 @@ proxy_read_timeout 3600s;
 client_max_body_size 100M;
 ```
 
-> 画布和 API 必须同为 HTTPS，或同为 HTTP。HTTPS 画布调用 HTTP API 会被浏览器拦截。
+> Kanvas dan API harus sama-sama HTTPS, atau sama-sama HTTP. Kanvas HTTPS yang memanggil API HTTP akan diblokir browser.
 
-#### 6. 导入 Muse 账号
+#### 6. Impor akun Muse
 
-浏览器打开：
+Buka di browser:
 
 ```text
-https://api.example.com/admin?key=你的MUSE_API_KEY
+https://api.example.com/admin?key=MUSE_API_KEY-Anda
 ```
 
-在管理台导入 Muse Cookie：
+Di panel admin, impor Cookie Muse:
 
-- 使用 `muse2api/extension/` 里的 Chrome 扩展；或
-- 从浏览器 DevTools → Application → Cookies → `muse.ai` 复制 `hatch_sess`、`hatch_vml`，粘贴为：
+- Pakai ekstensi Chrome di `muse2api/extension/`; atau
+- Dari DevTools browser → Application → Cookies → `muse.ai`, salin `hatch_sess`, `hatch_vml`, lalu tempel sebagai:
 
 ```text
 hatch_sess=......; hatch_vml=......
 ```
 
-导入后点账号的「测试」，状态可用即可。
+Setelah impor, klik "Test" pada akun, pastikan statusnya bisa dipakai.
 
-#### 7. 配置 Agent 与固定渠道
+#### 7. Konfigurasi Agent dan channel tetap
 
-画布后台只需要维护两个文件：
+Backend kanvas hanya perlu mengelola dua file:
 
-**`/Muse/.env`**（渠道固定来源）
+**`/Muse/.env`** (sumber penguncian channel)
 
 ```ini
 MUSE_API_BASE=https://api.example.com
-MUSE_API_KEY=你的随机长Key
+MUSE_API_KEY=key-acak-panjang-Anda
 MUSE_CHANNEL_NAME=Muse
 DEEPSEEK_API_KEY=sk-...
 ```
 
-**`/Muse/agent/.infinite-canvas/canvas-agent.json`**（Agent 唯一来源）
+**`/Muse/agent/.infinite-canvas/canvas-agent.json`** (satu-satunya sumber Agent)
 
 ```json
 {
   "url": "http://127.0.0.1:17371",
   "publicUrl": "https://agent.example.com",
-  "token": "安装脚本生成的36位Token",
+  "token": "Token 36 karakter hasil skrip instalasi",
   "origins": [
     "https://canvas.example.com"
   ],
@@ -255,21 +257,21 @@ DEEPSEEK_API_KEY=sk-...
 }
 ```
 
-改完后：
+Setelah diubah:
 
 ```bash
 supervisorctl restart muse2api muse-canvas muse-agent
 ```
 
-刷新画布：
+Refresh kanvas:
 
-- 「配置 → 渠道」显示只读提示，地址、Key、模型都不能改；
-- Agent 面板地址和 Token 输入框置灰锁定；
-- 页面右上角 Agent 自动连接，模型为 `DeepSeek-Flash`。
+- "Pengaturan → Channel" menampilkan pemberitahuan hanya-baca, alamat, Key, dan model tidak bisa diubah;
+- Kolom alamat dan Token panel Agent dikunci (disabled);
+- Di kanan atas halaman, Agent terhubung otomatis, modelnya `DeepSeek-Flash`.
 
-### 从源码构建前端
+### Membangun frontend dari source
 
-仓库已经包含构建好的 `canvas/dist`，一般不需要重新构建。修改 `source/infinite-canvas/web` 后：
+Repo ini sudah berisi `canvas/dist` hasil build, umumnya tidak perlu build ulang. Setelah mengubah `source/infinite-canvas/web`:
 
 ```bash
 cd source/infinite-canvas/web
@@ -279,70 +281,85 @@ rm -rf ../../../canvas/dist
 cp -a dist ../../../canvas/dist
 ```
 
-再重启 `muse-canvas`。
+Lalu restart `muse-canvas`.
 
-### 常用环境变量
+### Variabel lingkungan umum
 
-| 变量 | 默认值 | 说明 |
+| Variabel | Nilai default | Penjelasan |
 | --- | --- | --- |
-| `MUSE_API_BASE` | `http://127.0.0.1:1314` | 浏览器访问 API 的地址，不带 `/v1` |
-| `MUSE_API_KEY` | 随机生成 | muse2api 访问密钥 |
-| `MUSE_CHANNEL_NAME` | `Muse` | 画布渠道显示名 |
-| `MUSE2API_HOST` | `0.0.0.0` | API 监听地址 |
-| `MUSE2API_PORT` | `1314` | API 端口 |
-| `MUSE2API_CONCURRENCY` | `2` | 同时并发的 Muse 任务数 |
-| `MUSE2API_CHROMIUM` | 空 | 留空自动探测，或写 `/usr/bin/chromium` |
-| `DEEPSEEK_API_KEY` | 空 | 服务端 Agent 的 DeepSeek Key |
-| `CANVAS_HOST` | `0.0.0.0` | 画布监听地址 |
-| `CANVAS_PORT` | `521` | 画布端口 |
-| `CANVAS_ROOT` | 空 | 默认 `canvas/dist` |
-| `TZ` | `Asia/Shanghai` | 时区 |
+| `MUSE_API_BASE` | `http://127.0.0.1:1314` | Alamat API yang diakses browser, tanpa `/v1` |
+| `MUSE_API_KEY` | dibuat acak | Kunci akses muse2api |
+| `MUSE_CHANNEL_NAME` | `Muse` | Nama tampil channel kanvas |
+| `MUSE2API_HOST` | `0.0.0.0` | Alamat bind API |
+| `MUSE2API_PORT` | `1314` | Port API |
+| `MUSE2API_CONCURRENCY` | `2` | Jumlah tugas Muse yang berjalan bersamaan |
+| `MUSE2API_CHROMIUM` | kosong | Kosongkan untuk deteksi otomatis, atau isi `/usr/bin/chromium` |
+| `DEEPSEEK_API_KEY` | kosong | DeepSeek Key untuk Agent server |
+| `CANVAS_HOST` | `0.0.0.0` | Alamat bind kanvas |
+| `CANVAS_PORT` | `521` | Port kanvas |
+| `CANVAS_ROOT` | kosong | Default `canvas/dist` |
+| `TZ` | `Asia/Jakarta` | Zona waktu |
 
-### 常见问题
+### Pemecahan masalah
 
-**画布请求 `http://.../v1` 返回 `{"detail":"Not Found"}`**
-接口地址只填到域名或 IP，不要带 `/v1`。画布会自动拼接 `/v1/models`、`/v1/images/generations`。
+**Kanvas meminta `http://.../v1` dan kembali `{"detail":"Not Found"}`**
+Isi alamat interface hanya sampai domain atau IP, jangan tambahkan `/v1`. Kanvas otomatis menambahkan `/v1/models`, `/v1/images/generations`.
 
-**浏览器直接打开 `/v1/models` 返回 401**
-正常。浏览器地址栏不会带 `Authorization`，画布会自动带 `Bearer`。
+**Membuka `/v1/models` langsung di browser kembali 401**
+Normal. Address bar browser tidak membawa `Authorization`, kanvas otomatis membawa `Bearer`.
 
-**`Failed to fetch` / 混合内容**
-HTTPS 画布不能请求 HTTP API。把 `MUSE_API_BASE` 改成 HTTPS，或改用 HTTP 访问画布。
+**`Failed to fetch` / mixed content**
+Kanvas HTTPS tidak bisa meminta API HTTP. Ubah `MUSE_API_BASE` ke HTTPS, atau akses kanvas lewat HTTP.
 
-**生图超过 60 秒返回 504**
-Nginx 默认 60 秒太短，按上面的 `proxy_read_timeout 600s` 修改。
+**Membuat gambar lebih dari 60 detik kembali 504**
+Default Nginx 60 detik terlalu pendek, ubah sesuai `proxy_read_timeout 600s` di atas.
 
-**Agent 报 `DEEPSEEK_API_KEY ... 未配置`**
-`/Muse/.env` 中没有 Key。写入 `DEEPSEEK_API_KEY=sk-...`，`chmod 600`，重启 `muse-agent`。
+**Agent melaporkan `DEEPSEEK_API_KEY ... belum dikonfigurasi`**
+Di `/Muse/.env` belum ada Key. Tulis `DEEPSEEK_API_KEY=sk-...`, `chmod 600`, restart `muse-agent`.
 
-**Agent 面板 `origin not allowed`**
-用 `https://canvas.example.com` 打开画布，或把该来源加入 `canvas-agent.json` 的 `origins`。
+**Panel Agent `origin not allowed`**
+Buka kanvas lewat `https://canvas.example.com`, atau tambahkan sumber itu ke `origins` di `canvas-agent.json`.
 
-**Agent 显示已连接，但发消息报 401**
-DeepSeek Key 无效、余额不足或复制时带了空格。重新写入并重启 `muse-agent`。
+**Agent tampil terhubung, tetapi mengirim pesan kembali 401**
+DeepSeek Key tidak valid, saldo kurang, atau tersalin dengan spasi. Tulis ulang lalu restart `muse-agent`.
 
-**视频生成超时**
-确认 Nginx 读超时 ≥ 600 秒，并把 `.env` 的 `MUSE2API_CONCURRENCY` 调到机器能承受的值。
+**Pembuatan video timeout**
+Pastikan timeout baca Nginx ≥ 600 detik, dan sesuaikan `MUSE2API_CONCURRENCY` di `.env` dengan kemampuan mesin.
 
-### 安全说明
+### Keamanan
 
-- 本项目默认以 **root** 运行 Agent，Codex 具备执行命令的能力；不要把 Agent 端口裸露给不可信网络。
-- `canvas-agent.json` 里的 `token` 会通过 `/config.js` 暴露给能打开画布的人；请给画布加访问控制、防火墙白名单或反向代理认证。
-- `.env`、`canvas-agent.json`、Muse Cookie 都是敏感凭据，权限保持 `600`，不要提交到 Git。
-- 如果要把本项目公开部署，请自行增加登录、限流和审计。
+- Proyek ini secara default menjalankan Agent sebagai **root**, Codex bisa menjalankan perintah; jangan mengekspos port Agent ke jaringan yang tidak dipercaya.
+- `token` di `canvas-agent.json` akan terekspos lewat `/config.js` ke siapa pun yang bisa membuka kanvas; tambahkan kontrol akses, whitelist firewall, atau autentikasi reverse proxy.
+- `.env`, `canvas-agent.json`, dan Cookie Muse adalah kredensial sensitif, jaga izinnya `600`, jangan di-commit ke Git.
+- Jika proyek ini di-deploy secara publik, tambahkan login, rate limiting, dan audit sendiri.
 
-### 致谢
+### Ucapan terima kasih
 
-由衷感谢两个上游项目的作者，没有他们就没有这套组合：
+Dengan tulus berterima kasih kepada penulis dua proyek hulu, tanpa mereka kombinasi ini tidak ada:
 
-- **muse2api** — 作者 [@czg86389-hub](https://github.com/czg86389-hub)  
-  仓库：<https://github.com/czg86389-hub/muse2api>  
-  感谢把 Muse 封装成稳定的 OpenAI 兼容接口，并提供了账号池、任务队列和管理台。
-- **infinite-canvas** — 作者 [@basketikun](https://github.com/basketikun)  
-  仓库：<https://github.com/basketikun/infinite-canvas>  
-  感谢做出这么好用的无限画布、Agent 协议和前端工程。
+- **muse2api** — penulis [@czg86389-hub](https://github.com/czg86389-hub)
+  Repo: <https://github.com/czg86389-hub/muse2api>
+  Terima kasih sudah membungkus Muse menjadi interface yang kompatibel dengan OpenAI dan stabil, serta menyediakan kolam akun, antrean tugas, dan panel admin.
+- **infinite-canvas** — penulis [@basketikun](https://github.com/basketikun)
+  Repo: <https://github.com/basketikun/infinite-canvas>
+  Terima kasih sudah membuat kanvas tak terbatas yang sangat bagus, protokol Agent, dan rekayasa frontend.
 
-两个上游项目均为 **MIT License**；本仓库的集成代码同样以 MIT 发布，详见 `LICENSE` 与 `NOTICE`。
+Kedua proyek hulu berlisensi **MIT License**; kode integrasi repo ini juga dirilis dengan MIT, lihat `LICENSE` dan `NOTICE`.
+
+---
+
+## Deploy di Dokploy (fork ini)
+
+Fork ini di-deploy **canvas-only** di Dokploy LABS: hanya `canvas_server.py` + `canvas/dist` yang berjalan di container. Tanpa Chromium, tanpa Node, tanpa bundle muse2api di repo ini.
+
+- **muse2api yang dipakai** adalah layanan muse2api yang sudah live di https://muse2api.masyamin.biz.id — bukan bundle `muse2api/` di repo ini. Bundle itu versi lama (v1.6.7) dan **TIDAK dipakai** di deploy Dokploy ini.
+- **MUSE_API_BASE** di env Dokploy: `https://muse2api.masyamin.biz.id` (tanpa `/` di akhir, tanpa `/v1`).
+- **MUSE_API_KEY** disetel di env Dokploy (jangan tulis nilainya di repo mana pun).
+- **Agent DeepSeek nonaktif dulu**: Agent butuh `DEEPSEEK_API_KEY` (diawali `sk-`), dan key itu belum ada. Tanpa key tersebut, panel Agent tidak terhubung — kanvas tetap bisa dipakai untuk membuat gambar/video/percaturan lewat channel Muse. Untuk mengaktifkan Agent nanti, tambahkan `DEEPSEEK_API_KEY` di env Dokploy dan deploy layanan Agent secara terpisah.
+- **Dockerfile**: `Dockerfile` di root repo ini (base `python:3.11-slim-bookworm`, hanya menyalin `canvas_server.py` + `canvas/dist/`, port 521).
+- **Dokploy**: buat Application di project LABS dari repo fork https://github.com/ashabulymn/Muse-Canvas, branch `main`, Build Type Dockerfile, Dockerfile Path `./Dockerfile`, Docker Context Path `/`, port 521, domain `muse-canvas.masyamin.biz.id` (HTTPS). Env: `MUSE_API_BASE=https://muse2api.masyamin.biz.id`, `MUSE_API_KEY` (disetel di Dokploy), `MUSE_CHANNEL_NAME=Muse`, `CANVAS_HOST=0.0.0.0`, `CANVAS_PORT=521`, `TZ=Asia/Jakarta`.
+- **Verifikasi**: buka `https://muse-canvas.masyamin.biz.id/healthz` (harus `ok`), lalu `https://muse-canvas.masyamin.biz.id/config.js` (harus memuat `MUSE_API_BASE` ke muse2api live). Detail langkah ada di `DOKPLOY.md`.
+- **Akun Muse** belum diimpor di muse2api live (masih 0 akun) — impor dulu lewat panel admin muse2api live, kanvas memakai akun yang sama.
 
 ---
 
@@ -394,7 +411,7 @@ canvas ──> muse2api :1314 ──> Muse account pool + Chromium CDP
 
 ```text
 Muse-Canvas/
-├── README.md                     # This file (Chinese + English)
+├── README.md                     # This file (Bahasa Indonesia + English)
 ├── LICENSE                       # MIT
 ├── NOTICE                        # Upstream attribution
 ├── .env.example                  # Server environment template
@@ -611,32 +628,32 @@ Restart `muse-canvas`.
 | `CANVAS_HOST` | `0.0.0.0` | Canvas bind address |
 | `CANVAS_PORT` | `521` | Canvas port |
 | `CANVAS_ROOT` | empty | Defaults to `canvas/dist` |
-| `TZ` | `Asia/Shanghai` | Time zone |
+| `TZ` | `Asia/Jakarta` | Time zone |
 
 ### Troubleshooting
 
-**`{"detail":"Not Found"}` for `http://.../v1`**  
+**`{"detail":"Not Found"}` for `http://.../v1`**
 Use the root URL only; the canvas appends `/v1/...` itself.
 
-**401 when opening `/v1/models` in a browser**  
+**401 when opening `/v1/models` in a browser**
 Expected: browsers do not send `Authorization`. The canvas sends the Bearer token.
 
-**`Failed to fetch` / mixed content**  
+**`Failed to fetch` / mixed content**
 An HTTPS canvas cannot call an HTTP API. Switch `MUSE_API_BASE` to HTTPS or serve the canvas over HTTP.
 
-**Image generation returns 504 after ~60s**  
+**Image generation returns 504 after ~60s**
 Raise Nginx `proxy_read_timeout` to 600s and disable buffering.
 
-**Agent reports `DEEPSEEK_API_KEY ... 未配置`**  
+**Agent reports `DEEPSEEK_API_KEY ... not configured`**
 Add `DEEPSEEK_API_KEY=sk-...` to `/Muse/.env`, `chmod 600`, restart `muse-agent`.
 
-**Agent says `origin not allowed`**  
+**Agent says `origin not allowed`**
 Open the canvas at `https://canvas.example.com` or add that origin to `canvas-agent.json`.
 
-**Agent connects but a turn returns 401**  
+**Agent connects but a turn returns 401**
 The DeepSeek key is invalid, out of credit, or has whitespace. Rewrite it and restart `muse-agent`.
 
-**Video generation times out**  
+**Video generation times out**
 Set Nginx read timeout ≥ 600s and tune `MUSE2API_CONCURRENCY`.
 
 ### Security
@@ -650,11 +667,11 @@ Set Nginx read timeout ≥ 600s and tune `MUSE2API_CONCURRENCY`.
 
 Huge thanks to the upstream authors:
 
-- **muse2api** — [@czg86389-hub](https://github.com/czg86389-hub)  
-  <https://github.com/czg86389-hub/muse2api>  
+- **muse2api** — [@czg86389-hub](https://github.com/czg86389-hub)
+  <https://github.com/czg86389-hub/muse2api>
   For turning Muse into a stable OpenAI-compatible API, with account pooling, task queues, and an admin UI.
-- **infinite-canvas** — [@basketikun](https://github.com/basketikun)  
-  <https://github.com/basketikun/infinite-canvas>  
+- **infinite-canvas** — [@basketikun](https://github.com/basketikun)
+  <https://github.com/basketikun/infinite-canvas>
   For the excellent infinite canvas, Agent protocol, and frontend engineering.
 
 Both upstream projects are **MIT licensed**. The integration code here is also released under MIT; see `LICENSE` and `NOTICE`.
