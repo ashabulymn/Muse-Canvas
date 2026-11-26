@@ -355,6 +355,7 @@ Fork ini di-deploy **canvas-only** di Dokploy LABS: hanya `canvas_server.py` + `
 - **muse2api yang dipakai** adalah layanan muse2api yang sudah live di https://muse2api.masyamin.biz.id — bukan bundle `muse2api/` di repo ini. Bundle itu versi lama (v1.6.7) dan **TIDAK dipakai** di deploy Dokploy ini.
 - **MUSE_API_BASE** di env Dokploy: `https://muse2api.masyamin.biz.id` (tanpa `/` di akhir, tanpa `/v1`).
 - **MUSE_API_KEY** disetel di env Dokploy (jangan tulis nilainya di repo mana pun).
+- **Bahasa UI** default Bahasa Inggris (en-US); tombol `EN`/`中` di kanan atas untuk ganti ke Mandarin.
 - **Agent DeepSeek nonaktif dulu**: Agent butuh `DEEPSEEK_API_KEY` (diawali `sk-`), dan key itu belum ada. Tanpa key tersebut, panel Agent tidak terhubung — kanvas tetap bisa dipakai untuk membuat gambar/video/percaturan lewat channel Muse. Untuk mengaktifkan Agent nanti, tambahkan `DEEPSEEK_API_KEY` di env Dokploy dan deploy layanan Agent secara terpisah.
 - **Dockerfile**: `Dockerfile` di root repo ini (base `python:3.11-slim-bookworm`, hanya menyalin `canvas_server.py` + `canvas/dist/`, port 521).
 - **Dokploy**: buat Application di project LABS dari repo fork https://github.com/ashabulymn/Muse-Canvas, branch `main`, Build Type Dockerfile, Dockerfile Path `./Dockerfile`, Docker Context Path `/`, port 521, domain `muse-canvas.masyamin.biz.id` (HTTPS). Env: `MUSE_API_BASE=https://muse2api.masyamin.biz.id`, `MUSE_API_KEY` (disetel di Dokploy), `MUSE_CHANNEL_NAME=Muse`, `CANVAS_HOST=0.0.0.0`, `CANVAS_PORT=521`, `TZ=Asia/Jakarta`.

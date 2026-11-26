@@ -10,6 +10,7 @@ tanpa Node, tanpa bundle muse2api di repo ini.
   https://muse2api.masyamin.biz.id — bukan bundle `muse2api/` di repo ini.
   Bundle itu versi lama (v1.6.7) dan **TIDAK dipakai** di deploy ini.
 - **Akun Muse** belum diimpor di muse2api live (masih 0 akun) — impor dulu lewat panel admin muse2api live, kanvas memakai akun yang sama.
+- **Bahasa UI** default Bahasa Inggris (en-US) — bundle kanvas di-patch agar default `en-US` (sumber: `source/infinite-canvas/web/src/i18n/index.ts`); tombol `EN`/`中` di kanan atas untuk ganti bahasa.
 - **Agent DeepSeek nonaktif dulu**: Agent butuh `DEEPSEEK_API_KEY` (diawali
   `sk-`), dan key itu belum ada. Tanpa key tersebut, panel Agent tidak
   terhubung — kanvas tetap bisa dipakai untuk membuat gambar/video/percaturan
