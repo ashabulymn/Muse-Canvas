@@ -2,10 +2,13 @@ import { useEffect, useRef } from "react";
 import { App } from "antd";
 import { useTranslation } from "react-i18next";
 
+import i18n from "@/i18n";
 import { requestWebdavSync } from "@/services/app-sync";
 import { useAssetStore } from "@/stores/use-asset-store";
 import { useCanvasStore } from "@/stores/canvas/use-canvas-store";
-import { useConfigStore } from "@/stores/use-config-store";
+import { stripApiKeysFromConfig, useConfigStore } from "@/stores/use-config-store";
+import { usePromptSourceStore } from "@/stores/use-prompt-source-store";
+import { useThemeStore } from "@/stores/use-theme-store";
 
 /** Notification key shared with the manual sync in the settings modal. */
 export const WEBDAV_AUTO_SYNC_NOTICE_KEY = "webdav-auto-sync";
@@ -20,6 +23,8 @@ const FOLLOW_UP_MS = 2_000;
 function contentFingerprint(): string {
     const { projects, deletedProjects } = useCanvasStore.getState();
     const { assets } = useAssetStore.getState();
+    const { config } = useConfigStore.getState();
+    const { sources, schedule } = usePromptSourceStore.getState();
     return JSON.stringify({
         projects: projects.map((project) => ({
             id: project.id,
@@ -34,6 +39,12 @@ function contentFingerprint(): string {
         })),
         deletedProjects,
         assets: assets.map((asset) => ({ ...asset, updatedAt: undefined })),
+        settings: {
+            config: stripApiKeysFromConfig(config),
+            theme: useThemeStore.getState().theme,
+            locale: i18n.language === "zh-CN" ? "zh-CN" : "en-US",
+            promptSources: { sources, schedule },
+        },
     });
 }
 
@@ -144,6 +155,9 @@ export function useWebdavAutoSync() {
         }
         const unsubscribeCanvas = useCanvasStore.subscribe(onStoreChange);
         const unsubscribeAssets = useAssetStore.subscribe(onStoreChange);
+        const unsubscribeConfig = useConfigStore.subscribe(onStoreChange);
+        const unsubscribeTheme = useThemeStore.subscribe(onStoreChange);
+        const unsubscribePromptSources = usePromptSourceStore.subscribe(onStoreChange);
         const interval = window.setInterval(() => {
             maybeResume();
             if (stoppedRef.current || syncingRef.current) return;
@@ -155,6 +169,9 @@ export function useWebdavAutoSync() {
         return () => {
             unsubscribeCanvas();
             unsubscribeAssets();
+            unsubscribeConfig();
+            unsubscribeTheme();
+            unsubscribePromptSources();
             window.clearInterval(interval);
             if (debounceTimerRef.current) window.clearTimeout(debounceTimerRef.current);
             debounceTimerRef.current = null;
