@@ -1,21 +1,32 @@
 import localforage from "localforage";
 
-import i18n from "@/i18n";
+import i18n, { changeAppLocale, type AppLocale } from "@/i18n";
 import { getMediaBlob, resolveMediaUrl, setMediaBlob } from "@/services/file-storage";
 import { getImageBlob, resolveImageUrl, setImageBlob } from "@/services/image-storage";
 import { downloadWebdavFile, uploadWebdavFile, WEBDAV_MANIFEST_FILE_NAME } from "@/services/webdav-sync";
+import type { PromptSource } from "@/services/api/prompt-source-presets";
 import type { Asset } from "@/stores/use-asset-store";
 import { useAssetStore } from "@/stores/use-asset-store";
-import type { WebdavSyncConfig } from "@/stores/use-config-store";
+import { defaultConfig, stripApiKeysFromConfig, useConfigStore, type AiConfig, type SyncedAiConfig, type WebdavSyncConfig } from "@/stores/use-config-store";
+import { usePromptSourceStore, type PromptSourceSchedule } from "@/stores/use-prompt-source-store";
+import { useThemeStore, type ThemeName } from "@/stores/use-theme-store";
 import type { CanvasDeletedProject, CanvasProject } from "@/stores/canvas/use-canvas-store";
 import { useCanvasStore } from "@/stores/canvas/use-canvas-store";
 
 type StoredLog = Record<string, unknown> & { id?: string };
-export type AppSyncDomainKey = "canvas" | "assets" | "image-workbench" | "video-workbench";
+export type AppSyncDomainKey = "canvas" | "assets" | "image-workbench" | "video-workbench" | "settings";
 type DomainKey = AppSyncDomainKey;
 type CanvasDomainData = { projects: CanvasProject[]; deleted: CanvasDeletedProject[] };
 type AssetDomainData = { assets: Asset[] };
 type LogDomainData = { logs: StoredLog[] };
+/** Settings sync payload: one object, newest `updatedAt` wins as a whole. Never carries `webdav` or any `apiKey`. */
+export type SettingsDomainData = {
+    updatedAt: string;
+    config: SyncedAiConfig;
+    theme: ThemeName;
+    locale: AppLocale;
+    promptSources: { sources: PromptSource[]; schedule: PromptSourceSchedule };
+};
 
 type AppSyncFile = {
     storageKey: string;
@@ -87,7 +98,7 @@ export async function syncAppDataToWebdav(config: WebdavSyncConfig, onProgress?:
     emitProgress(onProgress, { stage: "localWaiting" });
     await Promise.all([waitForHydration(useCanvasStore), waitForHydration(useAssetStore)]);
 
-    const [canvas, assets, imageLogs, videoLogs] = await Promise.all([
+    const [canvas, assets, imageLogs, videoLogs, settings] = await Promise.all([
         syncDomain<CanvasDomainData>(config, onProgress, {
             key: "canvas",
             label: i18n.t("config.webdav.domains.canvas"),
@@ -123,11 +134,34 @@ export async function syncAppDataToWebdav(config: WebdavSyncConfig, onProgress?:
             mergeData: (local, remote) => ({ logs: mergeById(local.logs, remote.logs, "createdAt") }),
             applyData: async (data) => replaceStoredLogs(videoLogStore, data.logs),
         }),
+        syncDomain<SettingsDomainData>(config, onProgress, {
+            key: "settings",
+            label: i18n.t("config.webdav.domains.settings"),
+            emptyData: {
+                updatedAt: "",
+                config: stripApiKeysFromConfig(defaultConfig),
+                theme: "dark",
+                locale: "en-US",
+                promptSources: { sources: [], schedule: { intervalMinutes: 30, lastFetchedAt: "" } },
+            },
+            localData: async () => {
+                const { sources, schedule } = usePromptSourceStore.getState();
+                return {
+                    updatedAt: useConfigStore.getState().settingsUpdatedAt,
+                    config: stripApiKeysFromConfig(useConfigStore.getState().config),
+                    theme: useThemeStore.getState().theme,
+                    locale: i18n.language === "zh-CN" ? "zh-CN" : "en-US",
+                    promptSources: { sources, schedule },
+                };
+            },
+            mergeData: mergeSettingsData,
+            applyData: applySettingsData,
+        }),
     ]);
 
     const result = {
         syncedAt: new Date().toISOString(),
-        mergedRemote: [canvas, assets, imageLogs, videoLogs].some((item) => item.mergedRemote),
+        mergedRemote: [canvas, assets, imageLogs, videoLogs, settings].some((item) => item.mergedRemote),
         projects: canvas.data.projects.length,
         assets: assets.data.assets.length,
         imageLogs: imageLogs.data.logs.length,
@@ -308,6 +342,57 @@ async function replaceStoredLogs(store: LogStore, logs: StoredLog[]) {
         const id = getStringField(log, "id");
         if (id) await store.setItem(id, log);
     });
+}
+
+/** Settings merge: one object, newest `updatedAt` wins as a whole; ties go to local. Secrets are stripped again so a dirty remote manifest cannot smuggle a key in. */
+export function mergeSettingsData(local: SettingsDomainData, remote: SettingsDomainData): SettingsDomainData {
+    const localTime = Date.parse(local.updatedAt || "") || 0;
+    const remoteTime = Date.parse(remote.updatedAt || "") || 0;
+    const winner = remoteTime > localTime ? remote : local;
+    const config = stripApiKeysFromConfig({
+        ...defaultConfig,
+        ...(winner.config || {}),
+        channels: Array.isArray(winner.config?.channels) ? winner.config.channels : [],
+    });
+    return {
+        updatedAt: winner.updatedAt || "",
+        config,
+        theme: winner.theme === "light" ? "light" : "dark",
+        locale: winner.locale === "zh-CN" ? "zh-CN" : "en-US",
+        promptSources: normalizeSyncedPromptSources(winner.promptSources),
+    };
+}
+
+function normalizeSyncedPromptSources(value: SettingsDomainData["promptSources"] | undefined): SettingsDomainData["promptSources"] {
+    const data = (value || {}) as { sources?: unknown; schedule?: Partial<PromptSourceSchedule> };
+    const sources = Array.isArray(data.sources)
+        ? data.sources.filter((item): item is PromptSource => Boolean(item && typeof item === "object" && typeof (item as PromptSource).id === "string"))
+        : [];
+    return {
+        sources,
+        schedule: {
+            intervalMinutes: typeof data.schedule?.intervalMinutes === "number" ? data.schedule.intervalMinutes : 30,
+            lastFetchedAt: typeof data.schedule?.lastFetchedAt === "string" ? data.schedule.lastFetchedAt : "",
+        },
+    };
+}
+
+/** Apply synced settings. Local API keys are re-injected by channel id (a synced channel arrives keyless); the local WebDAV config is never touched because the payload has no `webdav` field. */
+async function applySettingsData(data: SettingsDomainData) {
+    const localConfig = useConfigStore.getState().config;
+    const localKeys = new Map(localConfig.channels.map((channel) => [channel.id, channel.apiKey]));
+    const config: AiConfig = {
+        ...data.config,
+        apiKey: localConfig.apiKey,
+        channels: data.config.channels.map((channel) => ({ ...channel, apiKey: localKeys.get(channel.id) ?? "" })),
+    };
+    useConfigStore.getState().applySyncedConfig(config, data.updatedAt);
+    if (useThemeStore.getState().theme !== data.theme) useThemeStore.setState({ theme: data.theme });
+    if (i18n.language !== data.locale) void changeAppLocale(data.locale);
+    const promptSources = usePromptSourceStore.getState();
+    if (JSON.stringify({ sources: promptSources.sources, schedule: promptSources.schedule }) !== JSON.stringify(data.promptSources)) {
+        promptSources.replaceSyncedSources(data.promptSources.sources, data.promptSources.schedule);
+    }
 }
 
 function mergeCanvasData(local: CanvasDomainData, remote: CanvasDomainData): CanvasDomainData {
