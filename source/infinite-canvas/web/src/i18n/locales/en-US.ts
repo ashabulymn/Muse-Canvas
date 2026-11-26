@@ -587,7 +587,7 @@ export default {
         },
         webdav: {
             title: "WebDAV sync",
-            description: "Sync canvases, assets, generation history, and local media files. AI API keys are excluded. Requests go through the local proxy when it is on; otherwise the browser connects to WebDAV directly.",
+            description: "Sync canvases, assets, generation history, settings, and local media files. AI API keys are excluded. Requests go through the local proxy when it is on; otherwise the browser connects to WebDAV directly.",
             lastSynced: "Last synced {{time}}",
             neverSynced: "Not synced yet",
             url: "WebDAV URL",
@@ -615,6 +615,7 @@ export default {
                 assets: "My Assets",
                 imageWorkbench: "Image Studio",
                 videoWorkbench: "Video Studio",
+                settings: "Settings",
             },
             stages: {
                 waiting: "Waiting",
