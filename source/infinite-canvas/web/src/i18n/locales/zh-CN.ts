@@ -587,7 +587,7 @@ export default {
         },
         webdav: {
             title: "WebDAV 同步",
-            description: "同步画布、我的资产、生成记录和本地媒体文件，不包含 AI API Key。开启本地代理时经本机代理转发，否则浏览器直连 WebDAV。",
+            description: "同步画布、我的资产、生成记录、设置和本地媒体文件，不包含 AI API Key。开启本地代理时经本机代理转发，否则浏览器直连 WebDAV。",
             lastSynced: "上次同步 {{time}}",
             neverSynced: "尚未同步",
             url: "WebDAV 地址",
@@ -615,6 +615,7 @@ export default {
                 assets: "我的资产",
                 imageWorkbench: "生图工作台",
                 videoWorkbench: "视频创作台",
+                settings: "设置",
             },
             stages: {
                 waiting: "等待同步",
