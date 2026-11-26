@@ -10,7 +10,7 @@ import { DOCS_URL } from "@/constant/env";
 import { changeAppLocale, type AppLocale } from "@/i18n";
 import { cn } from "@/lib/utils";
 import { canvasThemes } from "@/lib/canvas-theme";
-import { useConfigStore } from "@/stores/use-config-store";
+import { touchSettingsUpdatedAt, useConfigStore } from "@/stores/use-config-store";
 import { useThemeStore } from "@/stores/use-theme-store";
 
 type UserStatusActionsProps = {
@@ -51,7 +51,7 @@ export function UserStatusActions({ showConfig = true, variant = "default", onOp
                 </button>
             ) : null}
             <Tooltip title={languageLabel} mouseEnterDelay={0.2}>
-                <button type="button" className={`${naturalIconClass} text-[11px] font-semibold tracking-tight`} style={iconStyle} onClick={() => void changeAppLocale(nextLocale)} aria-label={languageLabel}>
+                <button type="button" className={`${naturalIconClass} text-[11px] font-semibold tracking-tight`} style={iconStyle} onClick={() => { touchSettingsUpdatedAt(); void changeAppLocale(nextLocale); }} aria-label={languageLabel}>
                     {locale === "zh-CN" ? "中" : "EN"}
                 </button>
             </Tooltip>
