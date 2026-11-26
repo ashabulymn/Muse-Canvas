@@ -27,6 +27,7 @@ type ModelGroup = {
 
 type WebdavDomainProgress = {
     stage: string;
+    size?: string;
     current?: number;
     total?: number;
     status?: "active" | "success" | "exception";
@@ -44,7 +45,7 @@ function createWebdavDomainProgress(): Record<AppSyncDomainKey, WebdavDomainProg
     return webdavDomainKeys.reduce(
         (progress, key) => ({
             ...progress,
-            [key]: { stage: "等待同步" },
+            [key]: { stage: "waiting" },
         }),
         {} as Record<AppSyncDomainKey, WebdavDomainProgress>,
     );
@@ -142,6 +143,7 @@ export function AppConfigPanel({ showDoneButton = false, initialTab = "channels"
             ...current,
             [event.domain as AppSyncDomainKey]: {
                 stage: event.stage,
+                size: event.size,
                 current: event.current,
                 total: event.total,
                 status: event.status,
@@ -456,7 +458,7 @@ function WebdavProgressGrid({ progress, t }: { progress: Record<AppSyncDomainKey
                         <div className="mb-1 flex min-w-0 items-center justify-between gap-3 text-xs">
                             <span className="shrink-0 font-medium text-stone-700 dark:text-stone-200">{t(`config.webdav.domains.${domainTranslationKey(key)}`)}</span>
                             <span className="min-w-0 truncate text-right text-stone-500">
-                                {syncStageLabel(item.stage, t)}
+                                {syncStageLabel(item.stage, t, item.size)}
                                 {count ? ` · ${count}` : ""}
                             </span>
                         </div>
@@ -474,38 +476,42 @@ function domainTranslationKey(domain: AppSyncDomainKey) {
     return domain;
 }
 
-function syncStageLabel(stage: string, t: TFunction) {
-    if (stage === "等待本地数据加载") return t("config.webdav.stages.localWaiting");
-    if (stage === "同步完成") return t("config.webdav.stages.syncComplete");
-    if (stage === "等待同步") return t("config.webdav.stages.waiting");
-    if (stage === "读取远端清单") return t("config.webdav.stages.remoteManifest");
-    if (stage === "读取本地数据") return t("config.webdav.stages.localData");
-    if (stage === "下载缺失媒体") return t("config.webdav.stages.downloadMedia");
-    if (stage === "写入本地合并结果") return t("config.webdav.stages.writeMerge");
-    if (stage === "上传新增媒体") return t("config.webdav.stages.uploadMedia");
-    if (stage === "媒体已齐全") return t("config.webdav.stages.mediaReady");
-    if (stage === "媒体无需上传") return t("config.webdav.stages.mediaSkipped");
-    if (stage === "检查缺失媒体") return t("config.webdav.stages.checkMissingMedia");
-    if (stage === "下载媒体") return t("config.webdav.stages.downloadMediaFile");
-    if (stage === "检查本地媒体") return t("config.webdav.stages.checkLocalMedia");
-    if (stage.startsWith("上传媒体 ")) return t("config.webdav.stages.uploadMediaFile", { size: stage.slice(5) });
-    if (stage === "完成") return t("config.webdav.stages.complete");
-    if (stage.startsWith("上传清单 ")) return t("config.webdav.stages.uploadManifest", { size: stage.slice(5) });
-    return stage;
+const WEBDAV_STAGE_KEYS = new Set([
+    "waiting",
+    "localWaiting",
+    "syncComplete",
+    "remoteManifest",
+    "localData",
+    "downloadMedia",
+    "writeMerge",
+    "uploadMedia",
+    "mediaReady",
+    "mediaSkipped",
+    "checkMissingMedia",
+    "downloadMediaFile",
+    "checkLocalMedia",
+    "uploadMediaFile",
+    "uploadManifest",
+    "complete",
+]);
+
+function syncStageLabel(stage: string, t: TFunction, size?: string) {
+    if (!WEBDAV_STAGE_KEYS.has(stage)) return stage;
+    return t(`config.webdav.stages.${stage}`, { size });
 }
 
 function getWebdavProgressPercent(item: WebdavDomainProgress) {
     if (item.status === "success") return 100;
     if (item.total) return Math.min(100, Math.round(((item.current || 0) / item.total) * 100));
     if (item.status === "exception") return 100;
-    if (item.stage === "等待同步") return 0;
-    if (item.stage === "读取远端清单") return 12;
-    if (item.stage === "读取本地数据") return 24;
-    if (item.stage === "下载缺失媒体") return 36;
-    if (item.stage === "写入本地合并结果") return 58;
-    if (item.stage === "上传新增媒体") return 66;
-    if (item.stage === "媒体已齐全" || item.stage === "媒体无需上传") return 74;
-    if (item.stage.startsWith("上传清单")) return 90;
+    if (item.stage === "waiting") return 0;
+    if (item.stage === "remoteManifest") return 12;
+    if (item.stage === "localData") return 24;
+    if (item.stage === "downloadMedia") return 36;
+    if (item.stage === "writeMerge") return 58;
+    if (item.stage === "uploadMedia") return 66;
+    if (item.stage === "mediaReady" || item.stage === "mediaSkipped") return 74;
+    if (item.stage === "uploadManifest") return 90;
     return item.status === "active" ? 30 : 0;
 }
 
