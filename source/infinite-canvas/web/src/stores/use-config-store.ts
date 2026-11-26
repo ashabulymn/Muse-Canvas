@@ -25,6 +25,22 @@ export type ModelChannel = {
     models: ChannelModel[];
 };
 
+/** Settings payload for WebDAV sync: the AI config with every `apiKey` removed. */
+export type SyncedModelChannel = Omit<ModelChannel, "apiKey">;
+export type SyncedAiConfig = Omit<AiConfig, "apiKey" | "channels"> & { channels: SyncedModelChannel[] };
+
+/** Deep-strip every `apiKey` field; the returned object never carries a secret. */
+export function stripApiKeysFromConfig(config: AiConfig | SyncedAiConfig): SyncedAiConfig {
+    const { apiKey: _droppedTopLevel, channels, ...rest } = config as AiConfig;
+    return {
+        ...rest,
+        channels: (channels || []).map((channel) => {
+            const { apiKey: _droppedChannel, ...channelRest } = channel;
+            return channelRest;
+        }),
+    };
+}
+
 export type AiConfig = {
     channelMode: "remote" | "local";
     baseUrl: string;
@@ -187,11 +203,15 @@ export const defaultWebdavSyncConfig: WebdavSyncConfig = {
 type ConfigStore = {
     config: AiConfig;
     webdav: WebdavSyncConfig;
+    /** Last settings change (config/theme/locale/prompt sources), for WebDAV newest-wins merge. */
+    settingsUpdatedAt: string;
     isConfigOpen: boolean;
     configTab: ConfigTabKey;
     shouldPromptContinue: boolean;
     updateConfig: <K extends keyof AiConfig>(key: K, value: AiConfig[K]) => void;
     importChannelCredentials: (input: { baseUrl?: string | null; apiKey?: string | null }) => ChannelCredentialsImportResult;
+    /** Apply settings downloaded from WebDAV; keeps the winner's timestamp, never bumps it. */
+    applySyncedConfig: (config: AiConfig, updatedAt: string) => void;
     updateWebdavConfig: <K extends keyof WebdavSyncConfig>(key: K, value: WebdavSyncConfig[K]) => void;
     isAiConfigReady: (config: AiConfig, model: string) => boolean;
     openConfigDialog: (shouldPromptContinue?: boolean, tab?: ConfigTabKey) => void;
@@ -266,6 +286,7 @@ export const useConfigStore = create<ConfigStore>()(
         (set, get) => ({
             config: defaultConfig,
             webdav: defaultWebdavSyncConfig,
+            settingsUpdatedAt: "",
             isConfigOpen: false,
             configTab: "channels",
             shouldPromptContinue: false,
@@ -276,15 +297,21 @@ export const useConfigStore = create<ConfigStore>()(
                         ...state.config,
                         [key]: value,
                     },
+                    settingsUpdatedAt: new Date().toISOString(),
                 }));
             },
             importChannelCredentials: (input) => {
                 if (MUSE_CHANNEL_LOCKED) return { status: "updated", channelName: museChannel?.name };
                 const currentConfig = get().config;
                 const result = upsertChannelCredentials(currentConfig, input);
-                if (result.config !== currentConfig) set({ config: result.config });
+                if (result.config !== currentConfig) set({ config: result.config, settingsUpdatedAt: new Date().toISOString() });
                 return { status: result.status, channelName: result.channelName };
             },
+            applySyncedConfig: (config, updatedAt) =>
+                set({
+                    config: MUSE_CHANNEL_LOCKED ? fixedMuseConfig(config) : config,
+                    settingsUpdatedAt: updatedAt,
+                }),
             updateWebdavConfig: (key, value) =>
                 set((state) => ({
                     webdav: {
@@ -299,7 +326,7 @@ export const useConfigStore = create<ConfigStore>()(
         }),
         {
             name: CONFIG_STORE_KEY,
-            partialize: (state) => ({ config: state.config, webdav: state.webdav }),
+            partialize: (state) => ({ config: state.config, webdav: state.webdav, settingsUpdatedAt: state.settingsUpdatedAt }),
             merge: (persisted, current) => {
                 const persistedState = (persisted || {}) as Partial<ConfigStore>;
                 const persistedConfig = (persistedState.config || {}) as Partial<AiConfig>;
@@ -336,6 +363,7 @@ export const useConfigStore = create<ConfigStore>()(
                 };
                 return {
                     ...current,
+                    settingsUpdatedAt: typeof persistedState.settingsUpdatedAt === "string" ? persistedState.settingsUpdatedAt : "",
                     webdav: { ...defaultWebdavSyncConfig, ...persistedWebdav },
                     config: MUSE_CHANNEL_LOCKED ? fixedMuseConfig(normalizedConfig) : normalizedConfig,
                 };
@@ -347,6 +375,11 @@ export const useConfigStore = create<ConfigStore>()(
 export function useEffectiveConfig() {
     const config = useConfigStore((state) => state.config);
     return useMemo(() => ({ ...config, channelMode: "local" as const }), [config]);
+}
+
+/** Bump the settings clock after any settings change (also called from the theme, locale and prompt-source stores). */
+export function touchSettingsUpdatedAt() {
+    useConfigStore.setState({ settingsUpdatedAt: new Date().toISOString() });
 }
 
 /** Normalize a mixed list of raw model names or model objects into deduped ChannelModel entries. */
