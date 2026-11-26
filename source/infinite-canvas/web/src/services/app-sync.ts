@@ -139,6 +139,19 @@ export async function syncAppDataToWebdav(config: WebdavSyncConfig, onProgress?:
     return result;
 }
 
+let webdavSyncInFlight: Promise<AppSyncResult> | null = null;
+
+/** Shared sync entry point for manual and automatic sync; concurrent calls share one run. */
+export async function requestWebdavSync(config: WebdavSyncConfig, onProgress?: AppSyncProgress): Promise<AppSyncResult> {
+    if (webdavSyncInFlight) return webdavSyncInFlight;
+    webdavSyncInFlight = syncAppDataToWebdav(config, onProgress);
+    try {
+        return await webdavSyncInFlight;
+    } finally {
+        webdavSyncInFlight = null;
+    }
+}
+
 async function syncDomain<T>(config: WebdavSyncConfig, onProgress: AppSyncProgress | undefined, options: SyncDomainOptions<T>): Promise<SyncDomainResult<T>> {
     try {
         emitProgress(onProgress, { domain: options.key, label: options.label, stage: "读取远端清单", status: "active" });
