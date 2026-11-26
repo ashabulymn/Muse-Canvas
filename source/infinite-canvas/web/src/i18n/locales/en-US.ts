@@ -603,6 +603,12 @@ export default {
             testFailed: "WebDAV connection test failed",
             preparing: "Preparing to sync",
             failed: "WebDAV sync failed",
+            autoSync: "Auto-sync",
+            autoSyncDescription: "Sync automatically when the app opens and shortly after changes.",
+            autoSyncFailed: "Auto-sync failed",
+            autoSyncFailedDescription: "{{reason}} It will retry automatically.",
+            autoSyncStopped: "Auto-sync stopped",
+            autoSyncStoppedDescription: "{{reason}} Auto-sync stopped after 3 failed attempts. Press Sync now to try again.",
             completed: "Sync complete: {{projects}} canvases, {{assets}} assets, {{records}} records, and {{files}} files ({{bytes}}) uploaded",
             domains: {
                 canvas: "Canvases",

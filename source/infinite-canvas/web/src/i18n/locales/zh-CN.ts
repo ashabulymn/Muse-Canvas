@@ -603,6 +603,12 @@ export default {
             testFailed: "WebDAV 连接测试失败",
             preparing: "准备同步",
             failed: "WebDAV 同步失败",
+            autoSync: "自动同步",
+            autoSyncDescription: "打开应用时自动同步，并在更改后不久自动同步。",
+            autoSyncFailed: "自动同步失败",
+            autoSyncFailedDescription: "{{reason}} 将自动重试。",
+            autoSyncStopped: "自动同步已停止",
+            autoSyncStoppedDescription: "{{reason}} 连续失败 3 次后自动同步已停止，请点击“立即同步”重试。",
             completed: "同步完成：{{projects}} 个画布，{{assets}} 个资产，{{records}} 条记录，本次上传 {{files}} 个文件 {{bytes}}",
             domains: {
                 canvas: "画布",
